@@ -1,0 +1,399 @@
+const studentForm = document.getElementById("studentForm");
+
+const nameInput = document.getElementById("name");
+const ageInput = document.getElementById("age");
+const emailInput = document.getElementById("email");
+const courseInput = document.getElementById("course");
+const phoneInput = document.getElementById("phone");
+
+const studentContainer = document.getElementById("studentContainer");
+const emptyState = document.getElementById("emptyState");
+
+const studentCount = document.getElementById("studentCount");
+const totalStudents = document.getElementById("totalStudents");
+const totalCourses = document.getElementById("totalCourses");
+
+const searchInput = document.getElementById("searchInput");
+
+const cancelBtn = document.getElementById("cancelBtn");
+
+const editModal = document.getElementById("editModal");
+const closeModal = document.getElementById("closeModal");
+const closeModalBtn = document.getElementById("closeModalBtn");
+
+const editForm = document.getElementById("editForm");
+
+const editId = document.getElementById("editId");
+const editName = document.getElementById("editName");
+const editAge = document.getElementById("editAge");
+const editEmail = document.getElementById("editEmail");
+const editCourse = document.getElementById("editCourse");
+const editPhone = document.getElementById("editPhone");
+
+
+// Get students from localStorage
+
+let students = JSON.parse(localStorage.getItem("students")) || [];
+
+
+// Add Student
+
+studentForm.addEventListener("submit", function (event) {
+
+    event.preventDefault();
+
+    const name = nameInput.value.trim();
+    const age = ageInput.value.trim();
+    const email = emailInput.value.trim();
+    const course = courseInput.value.trim();
+    const phone = phoneInput.value.trim();
+
+
+    if (
+        name === "" ||
+        age === "" ||
+        email === "" ||
+        course === "" ||
+        phone === ""
+    ) {
+
+        alert("Please fill all fields");
+
+        return;
+    }
+
+
+    const student = {
+
+        id: Date.now(),
+
+        name: name,
+
+        age: age,
+
+        email: email,
+
+        course: course,
+
+        phone: phone
+
+    };
+
+
+    students.push(student);
+
+    saveStudents();
+
+    displayStudents();
+
+    studentForm.reset();
+
+});
+
+
+// Save students
+
+function saveStudents() {
+
+    localStorage.setItem(
+        "students",
+        JSON.stringify(students)
+    );
+
+}
+
+
+// Display Students
+
+function displayStudents(list = students) {
+
+    studentContainer.innerHTML = "";
+
+
+    if (list.length === 0) {
+
+        studentContainer.appendChild(emptyState);
+
+        emptyState.style.display = "block";
+
+    } else {
+
+        emptyState.style.display = "none";
+
+
+        list.forEach(function (student) {
+
+            const card = document.createElement("div");
+
+            card.className = "student-card";
+
+
+            card.innerHTML = `
+
+                <div class="student-info">
+
+                    <div class="info-item">
+                        <span>Name</span>
+                        <strong>${student.name}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Age</span>
+                        <strong>${student.age}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Email</span>
+                        <strong>${student.email}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Course</span>
+                        <strong>${student.course}</strong>
+                    </div>
+
+                    <div class="info-item">
+                        <span>Phone</span>
+                        <strong>${student.phone}</strong>
+                    </div>
+
+                </div>
+
+
+                <div class="student-actions">
+
+                    <button
+                        class="edit-btn"
+                        onclick="editStudent(${student.id})"
+                    >
+                        Edit
+                    </button>
+
+
+                    <button
+                        class="delete-btn"
+                        onclick="deleteStudent(${student.id})"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            `;
+
+
+            studentContainer.appendChild(card);
+
+        });
+
+    }
+
+
+    updateDashboard();
+
+}
+
+
+// Edit Student
+
+function editStudent(id) {
+
+    const student = students.find(function (student) {
+
+        return student.id === id;
+
+    });
+
+
+    if (!student) {
+
+        return;
+
+    }
+
+
+    editId.value = student.id;
+
+    editName.value = student.name;
+
+    editAge.value = student.age;
+
+    editEmail.value = student.email;
+
+    editCourse.value = student.course;
+
+    editPhone.value = student.phone;
+
+
+    editModal.classList.add("active");
+
+}
+
+
+// Update Student
+
+editForm.addEventListener("submit", function (event) {
+
+    event.preventDefault();
+
+
+    const id = Number(editId.value);
+
+
+    const student = students.find(function (student) {
+
+        return student.id === id;
+
+    });
+
+
+    if (!student) {
+
+        return;
+
+    }
+
+
+    student.name = editName.value.trim();
+
+    student.age = editAge.value.trim();
+
+    student.email = editEmail.value.trim();
+
+    student.course = editCourse.value.trim();
+
+    student.phone = editPhone.value.trim();
+
+
+    saveStudents();
+
+    displayStudents();
+
+    closeEditModal();
+
+});
+
+
+// Delete Student
+
+function deleteStudent(id) {
+
+    const confirmDelete = confirm(
+        "Are you sure you want to delete this student?"
+    );
+
+
+    if (!confirmDelete) {
+
+        return;
+
+    }
+
+
+    students = students.filter(function (student) {
+
+        return student.id !== id;
+
+    });
+
+
+    saveStudents();
+
+    displayStudents();
+
+}
+
+
+// Search
+
+searchInput.addEventListener("input", function () {
+
+    const searchValue =
+        searchInput.value.toLowerCase().trim();
+
+
+    const filteredStudents = students.filter(function (student) {
+
+        return (
+
+            student.name.toLowerCase().includes(searchValue) ||
+
+            student.email.toLowerCase().includes(searchValue) ||
+
+            student.course.toLowerCase().includes(searchValue)
+
+        );
+
+    });
+
+
+    displayStudents(filteredStudents);
+
+});
+
+
+// Update Dashboard
+
+function updateDashboard() {
+
+    totalStudents.textContent = students.length;
+
+    studentCount.textContent =
+        `${students.length} Student${students.length !== 1 ? "s" : ""}`;
+
+
+    const courses = new Set(
+
+        students.map(function (student) {
+
+            return student.course.toLowerCase();
+
+        })
+
+    );
+
+
+    totalCourses.textContent = courses.size;
+
+}
+
+
+// Cancel Form
+
+cancelBtn.addEventListener("click", function () {
+
+    studentForm.reset();
+
+});
+
+
+// Close Modal
+
+closeModal.addEventListener("click", closeEditModal);
+
+closeModalBtn.addEventListener("click", closeEditModal);
+
+
+function closeEditModal() {
+
+    editModal.classList.remove("active");
+
+}
+
+
+// Close modal when clicking outside
+
+editModal.addEventListener("click", function (event) {
+
+    if (event.target === editModal) {
+
+        closeEditModal();
+
+    }
+
+});
+
+
+// Initial display
+
+displayStudents();
